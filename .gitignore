@@ -1,0 +1,47 @@
+# =========================
+# Java / Maven
+# =========================
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.iml
+
+# Maven Wrapper
+.mvn/wrapper/maven-wrapper.jar
+
+# Logs
+*.log
+*.out
+*.tmp
+
+# =========================
+# IntelliJ IDEA
+# =========================
+.idea/
+*.iws
+*.ipr
+*.iml
+out/
+
+# =========================
+# macOS
+# =========================
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# =========================
+# Spring Boot Sensitive Files
+# =========================
+backend/src/main/resources/application.properties
+backend/src/main/resources/application.yml
+backend/src/main/resources/application-*.yml
+backend/src/main/resources/application-*.properties
+
+# =========================
+# Misc
+# =========================
+*.swp
+*.swo
