@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  backend:
+    # En desarrollo, montamos el código fuente para hot reload
+    volumes:
+      - ./src:/app/src
+      - ~/.m2:/root/.m2  # Cache de Maven
+    environment:
+      SPRING_PROFILES_ACTIVE: docker,dev
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update  # En desarrollo permitimos actualizaciones automáticas
+      SPRING_JPA_SHOW_SQL: true
+      SPRING_DEVTOOLS_RESTART_ENABLED: true
+      SPRING_DEVTOOLS_LIVERELOAD_ENABLED: true
+    # En desarrollo, ejecutamos con Maven para hot reload
+    command: ./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=*:5005"
+    ports:
+      - "8080:8080"
+      - "5005:5005"  # Puerto para debugging remoto
+    # En desarrollo, reiniciamos automáticamente
+    restart: unless-stopped

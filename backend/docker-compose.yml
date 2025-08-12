@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: lubricentro_postgres
+    environment:
+      POSTGRES_DB: lubricentro_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/main/resources/db/migration:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d lubricentro_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lubricentro_network
+
+  # Spring Boot Application
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lubricentro_backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/lubricentro_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres123
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_JPA_SHOW_SQL: true
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: true
+      SPRING_FLYWAY_ENABLED: true
+      SPRING_FLYWAY_LOCATIONS: classpath:db/migration
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: true
+      APP_SECURITY_JWT_SECRET: "c2VjcmV0b2p3dGx1YnJpY2VudHJvYmFja2VuZDIwMjQ="
+      APP_SECURITY_JWT_ACCESS_MINUTES: 15
+      APP_SECURITY_JWT_REFRESH_DAYS: 7
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - lubricentro_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  lubricentro_network:
+    driver: bridge
