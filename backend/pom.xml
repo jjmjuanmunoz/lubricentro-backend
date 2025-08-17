@@ -21,6 +21,62 @@
 		<java.version>21</java.version>
 	</properties>
 
+	<profiles>
+		<profile>
+			<id>codegen-ws</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.cxf</groupId>
+						<artifactId>cxf-codegen-plugin</artifactId>
+						<version>4.0.5</version>
+						<executions>
+							<execution>
+								<id>generate-wsfev1</id>
+								<phase>generate-sources</phase>
+								<goals>
+									<goal>wsdl2java</goal>
+								</goals>
+								<configuration>
+									<wsdlOptions>
+										<wsdlOption>
+											<!-- Usa el WSDL LOCAL vendoreado -->
+											<wsdl>${project.basedir}/src/main/resources/wsdl/wsfev1.wsdl</wsdl>
+											<extraargs>
+												<extraarg>-p</extraarg>
+												<extraarg>ar.com.afip.wsfev1</extraarg>
+												<extraarg>-bareMethods</extraarg>
+											</extraargs>
+										</wsdlOption>
+									</wsdlOptions>
+									<sourceRoot>${project.build.directory}/generated-sources/cxf</sourceRoot>
+								</configuration>
+							</execution>
+							<execution>
+								<id>generate-wsaa</id>
+								<phase>generate-sources</phase>
+								<goals><goal>wsdl2java</goal></goals>
+								<configuration>
+									<wsdlOptions>
+										<wsdlOption>
+											<wsdl>${project.basedir}/src/main/resources/wsdl/wsaa.wsdl</wsdl>
+											<extraargs>
+												<extraarg>-p</extraarg>
+												<extraarg>ar.com.afip.wsaa</extraarg>
+												<extraarg>-bareMethods</extraarg>
+											</extraargs>
+										</wsdlOption>
+									</wsdlOptions>
+									<sourceRoot>${project.build.directory}/generated-sources/cxf</sourceRoot>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
 	<dependencies>
 		<!-- Core Web REST API -->
 		<dependency>
@@ -100,6 +156,38 @@
 			<version>0.11.5</version>
 			<scope>runtime</scope>
 		</dependency>
+		<!-- Facturacion -->
+		<!-- SOAP (Apache CXF) para WSFE -->
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-frontend-jaxws</artifactId>
+			<version>4.0.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-transports-http</artifactId>
+			<version>4.0.5</version>
+		</dependency>
+
+		<!-- Logging de mensajes SOAP (útil en dev) -->
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-features-logging</artifactId>
+			<version>4.0.5</version>
+		</dependency>
+
+		<!-- Cripto para WSAA (PKCS#7/CMS) -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-jdk18on</artifactId>
+			<version>1.78.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk18on</artifactId>
+			<version>1.78.1</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
