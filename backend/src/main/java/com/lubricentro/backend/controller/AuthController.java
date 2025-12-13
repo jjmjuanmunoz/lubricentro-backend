@@ -11,8 +11,10 @@ import com.lubricentro.backend.security.JwtService;
 import com.lubricentro.backend.security.RefreshTokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -49,7 +51,11 @@ public class AuthController {
         UserDetails principal = userDetailsService.loadUserByUsername(request.username());
 
         Map<String, Object> claims = new HashMap<>();
-        claims.put("role", principal.getAuthorities().iterator().next().getAuthority());
+        // Include all authorities (roles and permissions) in JWT claims
+        List<String> authorities = principal.getAuthorities().stream()
+                .map(auth -> auth.getAuthority())
+                .toList();
+        claims.put("authorities", authorities);
 
         String access = jwtService.generateAccessToken(principal, claims);
         User user = userRepository.findByUsernameAndIsActiveTrue(request.username()).orElseThrow();
@@ -69,7 +75,11 @@ public class AuthController {
         UserDetails principal = userDetailsService.loadUserByUsername(user.getUsername());
 
         Map<String, Object> claims = new HashMap<>();
-        claims.put("role", principal.getAuthorities().iterator().next().getAuthority());
+        // Include all authorities (roles and permissions) in JWT claims
+        List<String> authorities = principal.getAuthorities().stream()
+                .map(auth -> auth.getAuthority())
+                .toList();
+        claims.put("authorities", authorities);
 
         String access = jwtService.generateAccessToken(principal, claims);
         return ResponseEntity.ok(new TokenResponse(access, rotated.get().getToken(), "Bearer"));
@@ -90,6 +100,12 @@ public class AuthController {
 
         String username = jwtService.extractUsername(token);
         User user = userRepository.findByUsernameAndIsActiveTrue(username).orElseThrow();
-        return ResponseEntity.ok(new MeResponse(user.getId(), user.getUsername(), user.getEmail(), user.getFullName(), user.getRole()));
+
+        // Get role names from user's roles
+        Set<String> roleNames = user.getRoles().stream()
+                .map(role -> role.getName())
+                .collect(java.util.stream.Collectors.toSet());
+
+        return ResponseEntity.ok(new MeResponse(user.getId(), user.getUsername(), user.getEmail(), user.getFullName(), roleNames));
     }
 }

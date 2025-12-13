@@ -1,0 +1,13 @@
+afip:
+  cuit: "20286169113"
+  homologation: true   # false para producción
+  wsaa:
+    cert-path: "file:/secrets/afip.crt"   # o classpath:
+    key-path: "file:/secrets/afip.key"    # clave privada
+    p12-path: "/Users/juanjoDev/Documents/Afip/p12/afip-homo.p12"
+    p12-password: "Cachau2017!"   # o la que pusiste
+    service: "wsfe"                        # target del LTR
+  wsfe:
+    timeout-ms: 15000
+    pos-default: 1
+

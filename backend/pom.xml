@@ -1,144 +1,58 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.1.4</version>
-		<relativePath/>
+		<groupId>com.arcana</groupId>
+		<artifactId>arcana</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<groupId>com.lubricentro</groupId>
 	<artifactId>backend</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
 	<name>backend</name>
-	<description>Management system for workshop</description>
+	<packaging>jar</packaging>
 
 	<properties>
 		<java.version>21</java.version>
 	</properties>
 
-	<profiles>
-		<profile>
-			<id>codegen-ws</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.cxf</groupId>
-						<artifactId>cxf-codegen-plugin</artifactId>
-						<version>4.0.5</version>
-						<executions>
-							<execution>
-								<id>generate-wsfev1</id>
-								<phase>generate-sources</phase>
-								<goals>
-									<goal>wsdl2java</goal>
-								</goals>
-								<configuration>
-									<wsdlOptions>
-										<wsdlOption>
-											<!-- Usa el WSDL LOCAL vendoreado -->
-											<wsdl>${project.basedir}/src/main/resources/wsdl/wsfev1.wsdl</wsdl>
-											<extraargs>
-												<extraarg>-p</extraarg>
-												<extraarg>ar.com.afip.wsfev1</extraarg>
-												<extraarg>-bareMethods</extraarg>
-											</extraargs>
-										</wsdlOption>
-									</wsdlOptions>
-									<sourceRoot>${project.build.directory}/generated-sources/cxf</sourceRoot>
-								</configuration>
-							</execution>
-							<execution>
-								<id>generate-wsaa</id>
-								<phase>generate-sources</phase>
-								<goals><goal>wsdl2java</goal></goals>
-								<configuration>
-									<wsdlOptions>
-										<wsdlOption>
-											<wsdl>${project.basedir}/src/main/resources/wsdl/wsaa.wsdl</wsdl>
-											<extraargs>
-												<extraarg>-p</extraarg>
-												<extraarg>ar.com.afip.wsaa</extraarg>
-												<extraarg>-bareMethods</extraarg>
-											</extraargs>
-										</wsdlOption>
-									</wsdlOptions>
-									<sourceRoot>${project.build.directory}/generated-sources/cxf</sourceRoot>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
-
 	<dependencies>
-		<!-- Core Web REST API -->
+		<!-- Spring Boot -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-
-		<!-- JPA + Hibernate -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
 
-		<!-- PostgreSQL driver -->
+		<!-- DB & Migrations -->
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<version>42.7.7</version>
 		</dependency>
-
-		<!-- Flyway for DB migrations -->
 		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-core</artifactId>
 			<version>9.22.3</version>
 		</dependency>
 
-		<!-- Validation API -->
-		<dependency>
-			<groupId>jakarta.validation</groupId>
-			<artifactId>jakarta.validation-api</artifactId>
-		</dependency>
-
-		<!-- Swagger / OpenAPI (Springdoc) -->
+		<!-- OpenAPI -->
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 			<version>2.5.0</version>
 		</dependency>
 
-		<!-- Lombok -->
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<version>1.18.30</version>
-			<scope>provided</scope>
-		</dependency>
-
-		<!-- Unit Testing -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-
-		<!-- Security -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
-
-		<!-- JWT (JJWT) -->
+		<!-- JWT -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-api</artifactId>
@@ -156,38 +70,27 @@
 			<version>0.11.5</version>
 			<scope>runtime</scope>
 		</dependency>
-		<!-- Facturacion -->
-		<!-- SOAP (Apache CXF) para WSFE -->
+
+		<!-- Módulo AFIP -->
 		<dependency>
-			<groupId>org.apache.cxf</groupId>
-			<artifactId>cxf-rt-frontend-jaxws</artifactId>
-			<version>4.0.5</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.cxf</groupId>
-			<artifactId>cxf-rt-transports-http</artifactId>
-			<version>4.0.5</version>
+			<groupId>com.arcana</groupId>
+			<artifactId>afip-integration</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 
-		<!-- Logging de mensajes SOAP (útil en dev) -->
+		<!-- Tests -->
 		<dependency>
-			<groupId>org.apache.cxf</groupId>
-			<artifactId>cxf-rt-features-logging</artifactId>
-			<version>4.0.5</version>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
 		</dependency>
 
-		<!-- Cripto para WSAA (PKCS#7/CMS) -->
 		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcpkix-jdk18on</artifactId>
-			<version>1.78.1</version>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.32</version>
+			<scope>provided</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk18on</artifactId>
-			<version>1.78.1</version>
-		</dependency>
-
 	</dependencies>
 
 	<build>
@@ -195,6 +98,36 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>21</source>
+					<target>21</target>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>1.18.32</version>
+						</path>
+					</annotationProcessorPaths>
+					<compilerArgs>
+						<arg>-parameters</arg>
+					</compilerArgs>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>

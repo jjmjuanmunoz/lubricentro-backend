@@ -1,4 +1,4 @@
-package com.lubricentro.backend.service.impl;
+package com.lubricentro.backend.service;
 
 import com.lubricentro.backend.dto.invoice.InvoiceCreateDto;
 import com.lubricentro.backend.dto.invoice.InvoiceItemDto;

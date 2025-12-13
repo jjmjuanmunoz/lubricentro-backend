@@ -1,0 +1,135 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.arcana</groupId>
+    <artifactId>arcana</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>afip-integration</artifactId>
+  <name>afip-integration</name>
+  <packaging>jar</packaging>
+
+  <properties>
+    <maven.compiler.release>21</maven.compiler.release>
+  </properties>
+
+  <dependencies>
+    <!-- CXF runtime (si este módulo también expone clientes listos) -->
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-frontend-jaxws</artifactId>
+      <version>${cxf.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-transports-http</artifactId>
+      <version>${cxf.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-features-logging</artifactId>
+      <version>${cxf.version}</version>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Tests -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>5.10.2</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- Java 21 -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.12.1</version>
+        <configuration>
+          <release>${maven.compiler.release}</release>
+        </configuration>
+      </plugin>
+
+      <!-- Asegurar que target/generated-sources/cxf se agregue al classpath -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <id>add-generated-sources</id>
+            <phase>generate-sources</phase>
+            <goals><goal>add-source</goal></goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-sources/cxf</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <!-- Codegen SOLO cuando actives este perfil -->
+  <profiles>
+    <profile>
+      <id>codegen-ws</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-codegen-plugin</artifactId>
+            <version>${cxf.version}</version>
+            <executions>
+              <!-- WSAA -->
+              <execution>
+                <id>generate-wsaa</id>
+                <phase>generate-sources</phase>
+                <goals><goal>wsdl2java</goal></goals>
+                <configuration>
+                  <wsdlOptions>
+                    <wsdlOption>
+                      <wsdl>${project.basedir}/src/main/resources/wsdl/wsaa.wsdl</wsdl>
+                      <extraargs>
+                        <extraarg>-p</extraarg><extraarg>ar.com.afip.wsaa</extraarg>
+                        <extraarg>-bareMethods</extraarg>
+                      </extraargs>
+                    </wsdlOption>
+                  </wsdlOptions>
+                  <sourceRoot>${project.build.directory}/generated-sources/cxf</sourceRoot>
+                </configuration>
+              </execution>
+              <!-- WSFEv1 -->
+              <execution>
+                <id>generate-wsfe</id>
+                <phase>generate-sources</phase>
+                <goals><goal>wsdl2java</goal></goals>
+                <configuration>
+                  <wsdlOptions>
+                    <wsdlOption>
+                      <wsdl>${project.basedir}/src/main/resources/wsdl/wsfev1.wsdl</wsdl>
+                      <extraargs>
+                        <extraarg>-p</extraarg><extraarg>ar.com.afip.wsfev1</extraarg>
+                        <extraarg>-bareMethods</extraarg>
+                      </extraargs>
+                    </wsdlOption>
+                  </wsdlOptions>
+                  <sourceRoot>${project.build.directory}/generated-sources/cxf</sourceRoot>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>
