@@ -1,3 +1,5 @@
 package com.lubricentro.backend.dto;
 
-public record MeResponse(Long id, String username, String email, String fullName, String role) {}
+import java.util.Set;
+
+public record MeResponse(Long id, String username, String email, String fullName, Set<String> roles) {}
