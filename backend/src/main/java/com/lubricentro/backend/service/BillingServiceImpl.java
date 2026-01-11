@@ -4,11 +4,7 @@ import com.lubricentro.backend.dto.invoice.InvoiceCreateDto;
 import com.lubricentro.backend.dto.invoice.InvoiceItemDto;
 import com.lubricentro.backend.dto.invoice.InvoiceResponseDto;
 import com.lubricentro.backend.dto.invoice.InvoiceTributeDto;
-import com.lubricentro.backend.entity.AfipPos;
-import com.lubricentro.backend.entity.Customer;
-import com.lubricentro.backend.entity.Invoice;
-import com.lubricentro.backend.entity.InvoiceItem;
-import com.lubricentro.backend.entity.InvoiceTribute;
+import com.lubricentro.backend.entity.*;
 import com.lubricentro.backend.repository.AfipPosRepository;
 import com.lubricentro.backend.repository.CustomerRepository;
 import com.lubricentro.backend.repository.InvoiceRepository;
@@ -69,7 +65,7 @@ public class BillingServiceImpl implements BillingService {
                 .exemptAmount(calc.exempt)
                 .tributesAmount(calc.tributes)
                 .totalAmount(calc.total)
-                .status("APPROVED") // mock: aprobamos
+                .status(EstadoFactura.EMITIDA) // mock: aprobamos
                 .issuedOn(OffsetDateTime.now())
                 .cae(generateMockCae())
                 .caeExpiration(LocalDate.now().plusDays(10))
@@ -112,7 +108,7 @@ public class BillingServiceImpl implements BillingService {
                 invoice.getCbteNumber(),
                 invoice.getCae(),
                 invoice.getCaeExpiration(),
-                invoice.getStatus(),
+                invoice.getStatus().name(),
                 invoice.getNetAmount(),
                 invoice.getIvaAmount(),
                 invoice.getExemptAmount(),
@@ -130,7 +126,7 @@ public class BillingServiceImpl implements BillingService {
                 invoice.getCbteNumber(),
                 invoice.getCae(),
                 invoice.getCaeExpiration(),
-                invoice.getStatus(),
+                invoice.getStatus().name(),
                 invoice.getNetAmount(),
                 invoice.getIvaAmount(),
                 invoice.getExemptAmount(),

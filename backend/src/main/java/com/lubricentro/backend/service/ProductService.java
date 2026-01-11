@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -80,4 +81,12 @@ public class ProductService {
                 .active(dto.active())
                 .build();
     }
+
+    public List<ProductDto> searchByNameOrDescription(String query) {
+        return repository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContaining(query, query)
+                .stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
 }

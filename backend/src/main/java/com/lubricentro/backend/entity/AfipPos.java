@@ -34,4 +34,7 @@ public class AfipPos {
 
     @Column(name = "homologation", nullable = false)
     private Boolean homologation;
+
+    @Column(name = "active", nullable = false)
+    private Boolean active = true;
 }

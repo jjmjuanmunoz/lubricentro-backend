@@ -67,10 +67,24 @@ public class ProductController {
             @ApiResponse(responseCode = "204", description = "Product deleted successfully"),
             @ApiResponse(responseCode = "404", description = "Product not found")
     })
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         return service.delete(id) ?
                 ResponseEntity.noContent().build() :
                 ResponseEntity.notFound().build();
     }
+
+    @GetMapping("/search")
+    @Operation(summary = "Search products by name or description", description = "This endpoint allows searching for products based on their name or description.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved products"),
+            @ApiResponse(responseCode = "400", description = "Invalid query parameter supplied")
+    })
+    public ResponseEntity<List<ProductDto>> searchByNameOrDescription(@RequestParam String query) {
+        return ResponseEntity.ok(service.searchByNameOrDescription(query));
+    }
+
+
+
 }
