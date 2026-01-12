@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     # En desarrollo, montamos el código fuente para hot reload

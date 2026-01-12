@@ -72,6 +72,75 @@ fix_permissions() {
     fi
 }
 
+# Función para limpiar volúmenes de PostgreSQL
+clean_volumes() {
+    print_warning "Limpiando volúmenes de PostgreSQL..."
+    docker-compose down -v
+    print_message "Volúmenes eliminados. La base de datos se recreará al iniciar."
+}
+
+# Función para verificar y corregir problemas de PostgreSQL
+check_postgres_health() {
+    local max_attempts=30
+    local attempt=1
+    
+    while [ $attempt -le $max_attempts ]; do
+        # Verificar si el contenedor está corriendo
+        if ! docker-compose ps postgres | grep -q "Up"; then
+            # Contenedor no está corriendo, verificar logs para errores conocidos
+            local logs_output
+            logs_output=$(docker-compose logs postgres 2>&1 | tail -20)
+            
+            # Verificar error de incompatibilidad de versiones
+            if echo "$logs_output" | grep -q "database files are incompatible"; then
+                print_error "Error detectado: Los datos de PostgreSQL son incompatibles con la versión actual."
+                print_warning "Esto ocurre cuando se actualiza la versión de PostgreSQL."
+                echo ""
+                print_message "Limpiando volúmenes para recrear la base de datos con la nueva versión..."
+                clean_volumes
+                print_message "Reiniciando servicios..."
+                docker-compose up -d --build
+                attempt=1
+                continue
+            fi
+            
+            # Verificar error de rol que no existe
+            if echo "$logs_output" | grep -q "role.*does not exist"; then
+                print_error "Error detectado: el rol 'postgres' no existe en PostgreSQL."
+                print_warning "Esto generalmente ocurre por datos antiguos en el volumen persistente."
+                echo ""
+                print_message "Limpiando volúmenes para recrear la base de datos..."
+                clean_volumes
+                print_message "Reiniciando servicios..."
+                docker-compose up -d --build
+                attempt=1
+                continue
+            fi
+        fi
+        
+        # Intentar verificar si PostgreSQL está listo
+        if docker-compose exec -T postgres pg_isready -U postgres -d lubricentro_db > /dev/null 2>&1; then
+            print_message "PostgreSQL está listo."
+            return 0
+        fi
+        
+        if [ $attempt -eq $max_attempts ]; then
+            print_error "PostgreSQL no se pudo iniciar en el tiempo esperado."
+            print_message "Últimos logs de PostgreSQL:"
+            docker-compose logs --tail=50 postgres
+            echo ""
+            print_warning "Si el error persiste, intenta limpiar los volúmenes:"
+            print_message "  docker-compose down -v"
+            print_message "  ./start.sh"
+            exit 1
+        fi
+        
+        print_message "Esperando a que PostgreSQL esté listo... (intento $attempt/$max_attempts)"
+        sleep 2
+        attempt=$((attempt + 1))
+    done
+}
+
 # Función para iniciar los servicios
 start_services() {
     print_message "Iniciando servicios con Docker Compose..."
@@ -81,29 +150,12 @@ start_services() {
     
     print_message "Servicios iniciados. Esperando a que estén listos..."
     
-    # Esperar a que PostgreSQL esté listo
-    local max_attempts=30
-    local attempt=1
-    
-    while [ $attempt -le $max_attempts ]; do
-        if docker-compose exec -T postgres pg_isready -U postgres -d lubricentro_db > /dev/null 2>&1; then
-            print_message "PostgreSQL está listo."
-            break
-        fi
-        
-        if [ $attempt -eq $max_attempts ]; then
-            print_error "PostgreSQL no se pudo iniciar en el tiempo esperado."
-            docker-compose logs postgres
-            exit 1
-        fi
-        
-        print_message "Esperando a que PostgreSQL esté listo... (intento $attempt/$max_attempts)"
-        sleep 2
-        attempt=$((attempt + 1))
-    done
+    # Verificar salud de PostgreSQL
+    check_postgres_health
     
     # Esperar a que el backend esté listo
-    attempt=1
+    local max_attempts=30
+    local attempt=1
     while [ $attempt -le $max_attempts ]; do
         if curl -s http://localhost:8080/actuator/health > /dev/null 2>&1 || curl -s http://localhost:8080 > /dev/null 2>&1; then
             print_message "Backend está listo."
@@ -138,10 +190,47 @@ show_status() {
     echo -e "  ${BLUE}Ver logs:${NC} docker-compose logs -f"
     echo -e "  ${BLUE}Detener:${NC} docker-compose down"
     echo -e "  ${BLUE}Reiniciar:${NC} docker-compose restart"
+    echo -e "  ${BLUE}Limpiar volúmenes:${NC} ./start.sh --clean"
 }
 
 # Función principal
 main() {
+    # Procesar argumentos de línea de comandos
+    case "${1:-}" in
+        --clean|--reset)
+            print_header
+            print_message "Limpiando volúmenes y reiniciando servicios..."
+            check_docker
+            check_docker_compose
+            clean_volumes
+            print_message "Iniciando servicios..."
+            start_services
+            echo ""
+            show_status
+            echo ""
+            print_message "¡Lubricentro Backend está ejecutándose correctamente! 🎉"
+            return 0
+            ;;
+        --help|-h)
+            echo "Uso: ./start.sh [opciones]"
+            echo ""
+            echo "Opciones:"
+            echo "  --clean, --reset    Limpia los volúmenes de PostgreSQL y reinicia los servicios"
+            echo "  --help, -h          Muestra esta ayuda"
+            echo ""
+            echo "Sin opciones, inicia los servicios normalmente."
+            return 0
+            ;;
+        "")
+            # Sin argumentos, comportamiento normal
+            ;;
+        *)
+            print_error "Opción desconocida: $1"
+            print_message "Usa --help para ver las opciones disponibles"
+            return 1
+            ;;
+    esac
+    
     print_header
     
     print_message "Verificando prerrequisitos..."
