@@ -1,6 +1,7 @@
 package com.lubricentro.backend.service;
 
 import com.lubricentro.backend.dto.MenuCreateRequest;
+import com.lubricentro.backend.dto.MenuFlatDto;
 import com.lubricentro.backend.dto.MenuItemDto;
 import com.lubricentro.backend.entity.Menu;
 import com.lubricentro.backend.entity.User;
@@ -71,15 +72,16 @@ public class MenuService {
                 menu.getUrl(),
                 menu.getType(),
                 menu.getIcon(),
-                menu.getPermissionCode(),
+                menu.getTranslateKey(),
+                menu.getParent() != null ? menu.getParent().getId() : null,
                 visibleChildren
         ));
     }
 
-    public List<MenuItemDto> getAllMenus() {
-        List<Menu> rootMenus = menuRepository.findRootMenusWithChildren();
-        return rootMenus.stream()
-                .map(this::mapToDto)
+    public List<MenuFlatDto> getAllMenus() {
+        List<Menu> allMenus = menuRepository.findAllOrdered();
+        return allMenus.stream()
+                .map(this::mapToFlatDto)
                 .toList();
     }
 
@@ -94,8 +96,8 @@ public class MenuService {
                 .url(request.url())
                 .type(request.type())
                 .icon(request.icon())
-                .permissionCode(request.permissionCode())
-                .displayOrder(request.displayOrder())
+                .translateKey(request.translateKey())
+                .displayOrder(request.displayOrder() != null ? request.displayOrder() : 1)
                 .build();
 
         if (request.parentId() != null) {
@@ -104,6 +106,28 @@ public class MenuService {
         }
 
         return mapToDto(menuRepository.save(menu));
+    }
+
+    @Transactional
+    public Optional<MenuItemDto> update(Long id, MenuCreateRequest request) {
+        return menuRepository.findById(id)
+                .map(menu -> {
+                    menu.setTitle(request.title());
+                    menu.setUrl(request.url());
+                    menu.setType(request.type());
+                    menu.setIcon(request.icon());
+                    menu.setTranslateKey(request.translateKey());
+                    menu.setDisplayOrder(request.displayOrder() != null ? request.displayOrder() : 1);
+
+                    if (request.parentId() != null) {
+                        menuRepository.findById(request.parentId())
+                                .ifPresent(menu::setParent);
+                    } else {
+                        menu.setParent(null);
+                    }
+
+                    return mapToDto(menuRepository.save(menu));
+                });
     }
 
     @Transactional
@@ -126,8 +150,22 @@ public class MenuService {
                 entity.getUrl(),
                 entity.getType(),
                 entity.getIcon(),
-                entity.getPermissionCode(),
+                entity.getTranslateKey(),
+                entity.getParent() != null ? entity.getParent().getId() : null,
                 children
+        );
+    }
+
+    private MenuFlatDto mapToFlatDto(Menu entity) {
+        return new MenuFlatDto(
+                entity.getId(),
+                entity.getTitle(),
+                entity.getUrl(),
+                entity.getType(),
+                entity.getIcon(),
+                entity.getTranslateKey(),
+                entity.getParent() != null ? entity.getParent().getId() : null,
+                entity.getDisplayOrder()
         );
     }
 }

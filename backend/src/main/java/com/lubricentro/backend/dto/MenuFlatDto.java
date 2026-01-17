@@ -1,8 +1,6 @@
 package com.lubricentro.backend.dto;
 
-import java.util.List;
-
-public record MenuItemDto(
+public record MenuFlatDto(
     Long id,
     String title,
     String url,
@@ -10,5 +8,5 @@ public record MenuItemDto(
     String icon,
     String translateKey,
     Long parentId,
-    List<MenuItemDto> children
+    Integer displayOrder
 ) {}
