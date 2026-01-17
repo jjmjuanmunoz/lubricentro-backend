@@ -35,6 +35,9 @@ public class Menu {
     @Column(name = "permission_code", length = 100)
     private String permissionCode; // Can be null for public menu items
 
+    @Column(name = "translate_key", length = 255)
+    private String translateKey; // Translation key for i18n
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private Menu parent;

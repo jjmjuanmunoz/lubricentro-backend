@@ -10,7 +10,7 @@ public record MenuCreateRequest(
     @NotBlank(message = "Menu type is required")
     String type,
     String icon,
-    String permissionCode,
+    String translateKey,
     Long parentId,
     @NotNull(message = "Display order is required")
     Integer displayOrder
